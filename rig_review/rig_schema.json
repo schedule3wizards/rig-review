@@ -1,0 +1,657 @@
+{
+  "schema": 1,
+  "name": "KayKit-armature rig review rules",
+  "units": "Every length threshold is a fraction of H, the skinned mesh's height (y max - y min of the bind pose), unless it says 'ratio' (a ratio along a chain or between two measured lengths).",
+  "frame": "Bind pose is a T-pose, Y up, +X is the figure's left (the .l bones), +Z forward, feet at y = 0. Landmarks come from the bind-pose mesh alone (no bone position steers them): x_tip = the outermost surface point on a side (the shorter of the two sides stands for both, since a fused weapon or shield lengthens one); x_root = the torso edge at the arm, where the arm tube's vertical run exceeds 2 x its own height (tracked inward from the hand); tube centre = the middle of that run at a given |x|; neck_y = the head's underside, the highest level where the central column is at least 1.6 x the head's own width for 4 percent of H; crotch_y = the highest level below 0.6 H where the silhouette splits into two legs.",
+  "profiles": {
+    "humanoid": {
+      "description": "Human-shaped bodies: heroes, dwarf, halfling, elf, goblin, kobold, orc, skeleton and the like. The proportion limits of the rules as written.",
+      "overrides": {}
+    },
+    "ogre": {
+      "description": "Hunched, heavy bodies whose shoulder yoke or fur wrap rides up to the head (ogre, bugbear): the neck base may sit lower under the head and the shoulder line may sit further below it. Same relational rules, wider proportion limits only where noted.",
+      "overrides": {
+        "shoulder.neck_gap": {
+          "max": 0.09
+        },
+        "neck.at_mesh_neck": {
+          "min": -0.14
+        },
+        "motion.idle_arm_abduction": {
+          "idle_max": 0.2
+        }
+      }
+    }
+  },
+  "rules": [
+    {
+      "id": "sym.joint_pairs",
+      "group": "symmetry",
+      "measures": "For every left/right deform joint pair (upperarm, lowerarm, wrist, hand, handslot, upperleg, lowerleg, foot, toes): the distance between the left joint and the mirror of the right joint about the spine-line plane (x = mean x of hips, spine, chest, head). Value is the worst pair.",
+      "params": {
+        "max": 0.04
+      },
+      "pass_when": "value <= max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures that are asymmetric by design (a one-armed or winged-on-one-side figure) and non-bipeds"
+      },
+      "reason": "A rig that is not left/right symmetric makes every shared clip lean to one side."
+    },
+    {
+      "id": "shoulder.level",
+      "group": "shoulder line",
+      "measures": "Height difference between the two upperarm heads.",
+      "params": {
+        "max": 0.015
+      },
+      "pass_when": "value <= max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures whose bind pose is not a T-pose"
+      },
+      "reason": "Level shoulders; a tilted shoulder line shows in every clip as a permanent lean."
+    },
+    {
+      "id": "shoulder.neck_gap",
+      "group": "shoulder line",
+      "measures": "Neck base (the head bone's head) height minus the mean upperarm-head height, over H. Matt's rule: the shoulder line sits nearly level with the base of the neck.",
+      "params": {
+        "min": -0.03,
+        "max": 0.07
+      },
+      "pass_when": "min <= value <= max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "non-bipeds. The ogre profile allows 0.09 because a hunched yoke rides up to the head."
+      },
+      "reason": "Arms hung well below the neck base read as a long neck with sagging shoulders."
+    },
+    {
+      "id": "neck.at_mesh_neck",
+      "group": "neck",
+      "measures": "Head bone's head height minus neck_y (the head's underside read off the mesh), over H.",
+      "params": {
+        "min": -0.1,
+        "max": 0.05
+      },
+      "pass_when": "min <= value <= max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures with no separate head (a blob, a shadow). The ogre profile allows -0.14: the bone may sit lower, under a yoke."
+      },
+      "reason": "The head bone must pivot at the neck or the top of the shoulder mass; below it the head drags the chest, above it the skull swings on a pin inside itself."
+    },
+    {
+      "id": "neck.skull_clear",
+      "group": "neck",
+      "measures": "Mesh height above the head joint, divided by the head's own height (crown minus neck_y). 1.0 = joint at the head's underside.",
+      "params": {
+        "min": 0.75
+      },
+      "pass_when": "value >= min",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures with no separate head"
+      },
+      "reason": "Below 0.75 the joint is inside the skull: the head would rotate about a point in its own volume."
+    },
+    {
+      "id": "spine.order",
+      "group": "spine",
+      "measures": "Smallest height gap between consecutive joints of the chain hips, spine, chest, head (neck base), over H.",
+      "params": {
+        "min": 0.02
+      },
+      "pass_when": "value >= min",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures bound lying down"
+      },
+      "reason": "hips < spine < chest < neck base, each apart; folded or coincident spine joints shear the torso."
+    },
+    {
+      "id": "spine.hips_at_crotch",
+      "group": "spine",
+      "measures": "hips joint height minus crotch_y (where the legs separate in the silhouette), over H.",
+      "params": {
+        "min": -0.08,
+        "max": 0.1
+      },
+      "pass_when": "min <= value <= max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures whose legs never separate in the silhouette (skirt, loincloth, long robe): the rule is then SKIP, not PASS"
+      },
+      "reason": "The hips bone sits in the pelvis, at or a little above the crotch, so legs and torso split where a body splits."
+    },
+    {
+      "id": "arm.pivot_in_shoulder",
+      "group": "arm chain",
+      "measures": "|x| of the upperarm head divided by x_root (the torso edge at the arm), each side. Value is the larger ratio (the most outboard pivot); the smaller must also stay above min.",
+      "params": {
+        "min": 0.3,
+        "max": 0.9
+      },
+      "pass_when": "min <= ratio <= max on both sides",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures with a non-T bind pose, winged or cloaked arms that hide the torso edge"
+      },
+      "reason": "In the bind pose the arm pivot lies inside the deltoid, within the torso edge. Past 0.9 the pivot is at the deltoid's outer edge or beyond: the deltoid and bicep stay on the chest and the arm bends mid-bicep. The stock KayKit Knight reads 0.55."
+    },
+    {
+      "id": "arm.pivot_height",
+      "group": "arm chain",
+      "measures": "Upperarm head height minus the centre of the arm tube at the torso edge, over H (signed: a shoulder joint sits in the upper part of the deltoid, so above the tube centre is normal, below it is not).",
+      "params": {
+        "min": -0.05,
+        "max": 0.1
+      },
+      "pass_when": "min <= value <= max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures with a non-T bind pose"
+      },
+      "reason": "The pivot belongs on the arm's own axis; a pivot above or below it makes the arm swing about a point outside the limb."
+    },
+    {
+      "id": "arm.elbow_mid",
+      "group": "arm chain",
+      "measures": "Elbow position along the shoulder-to-wrist chord (0 = shoulder, 1 = wrist) and the elbow's distance off the chord over H. Value is the worse of |frac - 0.5| and the offset.",
+      "params": {
+        "frac_min": 0.4,
+        "frac_max": 0.6,
+        "off_max": 0.05
+      },
+      "pass_when": "frac_min <= frac <= frac_max and offset <= off_max, both sides",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "creatures with a different arm segment ratio"
+      },
+      "reason": "The elbow bends near the middle of the arm; one pinned near the shoulder or the wrist makes the forearm or upper arm a stub."
+    },
+    {
+      "id": "arm.chain_coverage",
+      "group": "arm chain",
+      "measures": "(|x| of handslot - |x| of upperarm head) / x_tip, each side: the share of the midline-to-fingertip span the bone chain covers. Value is the smaller side.",
+      "params": {
+        "min": 0.6
+      },
+      "pass_when": "value >= min",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures with a non-T bind pose"
+      },
+      "reason": "The chain has to cover most of the mesh's arm. The stock Knight covers 0.69; a chain that covers the outer two thirds only leaves the shoulder on the chest."
+    },
+    {
+      "id": "arm.hand_at_mesh_hand",
+      "group": "arm chain",
+      "measures": "(x_tip - |x| of the hand joint) over H, each side: how far the hand joint sits from the mesh's fingertips.",
+      "params": {
+        "min": 0.02,
+        "max": 0.12
+      },
+      "pass_when": "min <= value <= max, both sides",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures whose hand mesh is a claw or weapon fused to the arm"
+      },
+      "reason": "The hand joint belongs at the palm: a hand length (about 0.1 H) from the fingertip, not at the wrist and not past the tip."
+    },
+    {
+      "id": "arm.on_axis",
+      "group": "arm chain",
+      "measures": "Largest vertical or depth distance of the lowerarm, wrist and hand joints from the centre of the mesh's arm tube at their |x|, over H.",
+      "params": {
+        "max": 0.07
+      },
+      "pass_when": "value <= max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures with a non-T bind pose"
+      },
+      "reason": "A joint off the limb's axis shears the skin when it rotates."
+    },
+    {
+      "id": "leg.knee_mid",
+      "group": "leg chain",
+      "measures": "Knee position along the hip-to-ankle chord (0 = hip, 1 = ankle) and the knee's distance off the chord over H.",
+      "params": {
+        "frac_min": 0.35,
+        "frac_max": 0.65,
+        "off_max": 0.05
+      },
+      "pass_when": "frac_min <= frac <= frac_max and offset <= off_max, both sides",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "digitigrade legs (goblin-like with a raised heel) read the same way as a check, not a verdict"
+      },
+      "reason": "The knee bends near the middle of the leg."
+    },
+    {
+      "id": "leg.ankle_height",
+      "group": "leg chain",
+      "measures": "Foot joint height above the mesh's lowest point, over H.",
+      "params": {
+        "min": 0.03,
+        "max": 0.11
+      },
+      "pass_when": "min <= value <= max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures standing on a base or raised platform"
+      },
+      "reason": "The ankle sits a short way above the floor, where the leg narrows into the foot."
+    },
+    {
+      "id": "leg.feet_on_floor",
+      "group": "leg chain",
+      "measures": "Lowest mesh point above the floor (y = 0) and the toes joint above the mesh's lowest point, over H. Value is the worse.",
+      "params": {
+        "floor_max": 0.02,
+        "toes_min": -0.01,
+        "toes_max": 0.04
+      },
+      "pass_when": "|ymin| <= floor_max and toes_min <= toes - ymin <= toes_max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "flying or hovering figures"
+      },
+      "reason": "The clips plant the feet at y = 0; a mesh that floats or sinks makes every walk slide or sink."
+    },
+    {
+      "id": "joints.inside_mesh",
+      "group": "placement",
+      "measures": "Deform joints (hips, spine, chest, head, upperarm, lowerarm, wrist, hand, upperleg, lowerleg, foot, toes) that lie outside the filled mesh volume and more than max from its surface, over H. Value is the worst distance outside.",
+      "params": {
+        "max": 0.04
+      },
+      "pass_when": "value <= max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "open or hollow meshes (a skeleton's ribcage), handslot and the IK/control bones, which may sit off the body by design"
+      },
+      "reason": "A joint outside the body skins nothing near it."
+    },
+    {
+      "id": "topology.spine_segments",
+      "group": "topology",
+      "measures": "Number of spine segments from the hips to the neck base: the joints hips .. top spine joint (the ancestors of the neck or head below the root) each start one segment, the last ends at the neck base. Reference chart: Hip, Spine1, Spine2, Spine3, Neck.",
+      "params": {
+        "min": 3
+      },
+      "pass_when": "value >= min",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "non-bipeds. Name map: hips = hips, spine joints = the ancestors of head/neck above hips (KayKit: spine, chest), neck = any joint named neck*."
+      },
+      "reason": "Three spine segments let the torso bend and twist along its length; fewer make it a hinge."
+    },
+    {
+      "id": "topology.clavicles",
+      "group": "topology",
+      "measures": "A clavicle joint (named clav*, collar* or shoulder*) per side that is the parent of the upperarm, is itself parented to the top spine joint, starts at the neck base (within origin_max x H) and runs to the upperarm head within angle_max degrees of horizontal. A rig with no clavicle bone FAILS (value none). Value is the larger angle.",
+      "params": {
+        "angle_max": 25.0,
+        "origin_max": 0.05
+      },
+      "pass_when": "both sides present, parent = top spine joint, origin at the neck base, angle <= angle_max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "non-bipeds. The KayKit Knight armature has no clavicles, so every rig bound from it FAILS this rule by construction."
+      },
+      "reason": "The shoulders move with a clavicle bone from the neck base (reference rig, Matt 2026-10-31): without it the arm pivots from the sternum and the shoulder cannot shrug or roll."
+    },
+    {
+      "id": "topology.neck_bone",
+      "group": "topology",
+      "measures": "A neck joint (named neck*) between the top spine joint and the head, parented to the top spine joint, with a length of min to max x H from the neck base to the head joint. No neck joint FAILS (value none).",
+      "params": {
+        "min": 0.02,
+        "max": 0.12
+      },
+      "pass_when": "neck present, parent = top spine joint, min <= length <= max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "non-bipeds. The KayKit Knight armature hangs the head from the chest."
+      },
+      "reason": "The reference chart runs Spine3, Neck, Head: the head turns on the neck, not on the torso."
+    },
+    {
+      "id": "topology.head_span",
+      "group": "topology",
+      "measures": "The head joint has a child joint (the bone's tail) that lies within max x H of the mesh crown, and the head joint itself sits in the lowest head_base_max of the head (the mesh height from the neck base to the crown), so the head bone spans the skull from its base. No tail joint FAILS (value none): a leaf joint stores no tail, so the span cannot be shown. Value is the tail-to-crown gap.",
+      "params": {
+        "max": 0.06,
+        "head_base_max": 0.35
+      },
+      "pass_when": "tail present, |tail y - crown y| <= max and head joint within the lowest head_base_max of the head",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "non-bipeds. A hat or horn above the skull moves the crown: read the crown off a bare head."
+      },
+      "reason": "Reference rig: the head bone runs from the skull base to the crown."
+    },
+    {
+      "id": "placement.chest_rib_base",
+      "group": "placement",
+      "measures": "Height of each spine joint above the hips, as a fraction of the way from the hips joint to the shoulder line (0 = hips, 1 = upperarm heads). Some spine joint (the chest joint in the 3-joint KayKit spine) must lie at the base of the ribcage, within min to max; value is the fraction of the joint nearest the middle of that range.",
+      "params": {
+        "min": 0.4,
+        "max": 0.68
+      },
+      "pass_when": "min <= value <= max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "non-bipeds. Anthropometry: hips joint about 0.54 H, lower rib margin about 0.69 H, shoulder joint about 0.82 H give 0.54; mid-sternum is about 0.75 H, which gives 0.75. The KayKit chest joint sits at 0.8 and its spine joint at 0.3, so neither is at the rib base."
+      },
+      "reason": "A joint belongs at the base of the ribcage, not mid-sternum (Matt 2026-10-31): the ribcage then moves as one block above it."
+    },
+    {
+      "id": "placement.hip_sockets",
+      "group": "placement",
+      "measures": "Each upperleg head: lateral distance from the midline over H, and height above the crotch (where the legs separate in the silhouette) over H. Value is the worst excess outside the bounds.",
+      "params": {
+        "lat_min": 0.05,
+        "lat_max": 0.15,
+        "h_min": -0.02,
+        "h_max": 0.1
+      },
+      "pass_when": "lat_min <= lateral <= lat_max and h_min <= height <= h_max, both sides",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures whose legs never separate in the silhouette (SKIP). Anthropometry: the hip joint centre is about 0.09 H off the midline and 0.05 H above the crotch."
+      },
+      "reason": "The hip joint sits in the socket, lateral of the midline at groin height, not at the spine and not mid-thigh."
+    },
+    {
+      "id": "placement.knee_ankle_on_mesh",
+      "group": "placement",
+      "measures": "Knee (lowerleg) and ankle (foot) joints against the centre of the mesh's leg cross-section at their height (x and z, 3rd to 97th percentile midpoint), over H. Value is the worst.",
+      "params": {
+        "max": 0.05
+      },
+      "pass_when": "value <= max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "digitigrade or bent legs in the bind pose; a boot or greave that widens the section"
+      },
+      "reason": "A joint off the leg's centre line swings the shin about a point outside the limb."
+    },
+    {
+      "id": "arm.pivot_glenohumeral",
+      "group": "arm chain",
+      "measures": "Distance between the upperarm head and the centre of a sphere fitted to the deltoid cap of the mesh (surface points in a shell around the arm root whose normals face away from the centre, 12 iterations from a start inside the arm root, radius clamped to 0.04 to 0.10 H), over H. Value is the worse side. SKIP when the left and right fits disagree by more than fit_agree_max: the fit is then not trustworthy on that mesh.",
+      "params": {
+        "max": 0.05,
+        "fit_agree_max": 0.04
+      },
+      "pass_when": "value <= max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures whose arm roots are hidden by a cloak, wings or armour; non-T bind poses"
+      },
+      "reason": "The shoulder joint is the centre of the humeral head, inside the deltoid cap (Matt, 16:41: shoulder pivot wrong). On the stock Knight it reads 0.016."
+    },
+    {
+      "id": "arm.upper_fore_ratio",
+      "group": "arm chain",
+      "measures": "Upper arm (upperarm head to elbow) over forearm (elbow to wrist) in the rig, each side, and the elbow joint's distance from the mesh's elbow (the narrowest section of the arm tube between 10 and 60 percent of the way from the torso edge to the fingertip), over H.",
+      "params": {
+        "min": 1.05,
+        "max": 1.4,
+        "elbow_max": 0.05
+      },
+      "pass_when": "min <= ratio <= max and elbow offset <= elbow_max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "creatures with a different arm segment ratio. Source for the band: standard anthropometric segment lengths (Drillis and Contini 1966, as tabulated in Winter, Biomechanics and Motor Control of Human Movement): upper arm 0.186 H, forearm 0.146 H, a ratio of 1.27. The band is that value plus and minus about 10 percent."
+      },
+      "reason": "A human upper arm is longer than the forearm; the KayKit armature (0.93) and every bound figure keep the forearm longer, and the elbow belongs at the mesh elbow."
+    },
+    {
+      "id": "arm.upper_length_vs_mesh",
+      "group": "arm chain",
+      "measures": "Rig upper-arm length over the mesh's humerus length (deltoid cap centre to the mesh elbow, along x), each side.",
+      "params": {
+        "min": 0.85,
+        "max": 1.15
+      },
+      "pass_when": "min <= ratio <= max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "same as arm.pivot_glenohumeral; SKIP when no cap fit"
+      },
+      "reason": "An upper-arm bone short against the mesh humerus leaves the deltoid and bicep to bend with the chest (Matt, 16:41: upper arm too long or short)."
+    },
+    {
+      "id": "motion.idle_arm_abduction",
+      "group": "motion",
+      "measures": "Idle (frame 0 and mid) and Walking_A (8 frames): in the posed frame, how far the elbow joint sits beyond the torso side (95th percentile lateral offset of torso-dominant vertices at the elbow height along the spine axis), over H. Positive is held out, negative is inside the torso silhouette. Value is the largest Idle clearance; the smallest Walking_A clearance must stay at or above walk_min (arm not buried in the torso). The upper-arm angle off the torso in the clip is reported but is the same for every rig bound from this armature (clip rotations on a T-pose bind), so it cannot be a rig rule.",
+      "params": {
+        "idle_max": 0.15,
+        "walk_min": -0.04
+      },
+      "pass_when": "idle clearance <= idle_max and walk clearance >= walk_min",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures carrying a shield or two-handed prop in Idle. The ogre profile allows 0.20: a hunched yoke widens the torso. Reasoning for 0.15: a human elbow hangs about one arm radius (0.03 to 0.08 H) beyond the torso side; the TRELLIS-bound humanoids read 0.09 to 0.14, the stock Knight 0.04 to 0.09."
+      },
+      "reason": "Arms held out wide in Idle and the walk (Matt, 16:41); buried arms are the opposite fault."
+    },
+    {
+      "id": "motion.deltoid_volume",
+      "group": "motion",
+      "measures": "Convex-hull volume of the deltoid and proximal-bicep vertices (by position, not by weights: from the upperarm head to 60 percent of the upper arm, within 0.10 H of its axis) in the posed frames of the chop (1H_Melee_Attack_Chop, arm raised), the slice (Slice_Horizontal, forward) and Idle (down), 9 samples each, over the same hull in the bind pose. Value is the worst of ratio and 1/ratio. Needs scipy (SKIP without it).",
+      "params": {
+        "min": 0.65,
+        "max": 1.5
+      },
+      "pass_when": "all clips: min <= ratio <= max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "meshes with fewer than 40 deltoid vertices. Skin blending at the region border also moves the ratio, so TRELLIS figures read 0.73 to 1.38, not 1.0."
+      },
+      "reason": "Pinching or ballooning of the deltoid and bicep (Matt, 16:41: bicep and deltoid deform badly)."
+    },
+    {
+      "id": "placement.hips_height",
+      "group": "placement",
+      "measures": "Each thigh joint (upperleg head) above the crotch over H, and the hips joint above the thigh joints over H.",
+      "params": {
+        "thigh_min": 0.02,
+        "thigh_max": 0.1,
+        "hips_min": -0.06,
+        "hips_max": 0.06
+      },
+      "pass_when": "thigh_min <= thigh above crotch <= thigh_max and hips_min <= hips above thigh <= hips_max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures whose legs never separate in the silhouette (SKIP). Anthropometry: the hip joint centre is about 0.53 H and the crotch about 0.47 H, so the femoral head sits about 0.06 H above the crotch (Winter); the naming chart puts the root a little above the thigh joints."
+      },
+      "reason": "Hips raised (Matt, 16:43): thigh joints at or below the crotch put the leg's pivot outside the pelvis."
+    },
+    {
+      "id": "weights.nearest_bone",
+      "group": "weights",
+      "measures": "Per limb bone (upperarm, lowerarm, wrist, hand, upperleg, lowerleg, foot, toes, each side): take the vertices that are clearly on the limb (the limb's bone segments are the nearest of the body's six groups, left arm, right arm, left leg, right leg, torso, head, within near x H of them and nearer than the next group by at least margin x H, so the ball around a joint where two groups tie is not counted) and nearest to that bone within the limb; the share whose dominant weight group is not the limb. Value is the worst bone with at least max(25, 0.002 x vertex count) such vertices. Bone segments are joint-to-child links owned by the parent (chest owns the links to both upperarm heads and the head; hips owns the links to both upperleg heads and the spine).",
+      "params": {
+        "near": 0.06,
+        "margin": 0.02,
+        "share_max": 0.15
+      },
+      "pass_when": "worst bone share <= share_max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "meshes with loose parts that follow another bone on purpose (a cape, a tail, wings). SKIP when no limb bone has enough vertices clearly on it. The stock Knight reads 0.12 on its shoulder pads (armour weighted to the chest), TRELLIS-bound rigs read 0.00 to 0.01 and a deltoid-and-bicep weighted to the chest reads 0.2 to 0.6."
+      },
+      "reason": "A vertex on the arm follows the arm: a deltoid weighted to the chest drags with the torso while the arm lifts."
+    },
+    {
+      "id": "weights.no_lr_mix",
+      "group": "weights",
+      "measures": "Share of vertices carrying at least 0.20 weight on limb bones of both sides (.l and .r).",
+      "params": {
+        "share_max": 0.002,
+        "weight_min": 0.2
+      },
+      "pass_when": "share <= share_max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "none"
+      },
+      "reason": "A vertex between the two arms (or legs) tears when they move apart."
+    },
+    {
+      "id": "weights.no_arm_leg_mix",
+      "group": "weights",
+      "measures": "Share of vertices carrying at least 0.20 weight on both an arm bone and a leg bone.",
+      "params": {
+        "share_max": 0.002,
+        "weight_min": 0.2
+      },
+      "pass_when": "share <= share_max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "none"
+      },
+      "reason": "A hand resting on a thigh in the bind pose must not drag skin when the arm swings."
+    },
+    {
+      "id": "motion.edge_stretch",
+      "group": "motion",
+      "measures": "In five sample frames (Idle mid, the two Walking_A swing extremes, the 1H_Melee_Attack_Slice_Diagonal reach peak, the end of Death_A) with the mesh linear-blend-skinned: the share of mesh edges (rest length over 0.004 H) whose length changes by more than a factor of max_ratio. Value is the worst frame's share.",
+      "params": {
+        "max_ratio": 2.0,
+        "share_max": 0.005
+      },
+      "pass_when": "share <= share_max",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "meshes with hard separate parts joined by edges across a seam"
+      },
+      "reason": "A stretched edge is a torn or smeared patch of skin on screen."
+    },
+    {
+      "id": "motion.arm_swing_walk",
+      "group": "motion",
+      "measures": "Walking_A: the range of each hand joint's forward (z) position relative to the hips joint over the cycle, over x_tip (the mesh's arm length from the midline). Value is the smaller hand.",
+      "params": {
+        "min": 0.2
+      },
+      "pass_when": "value >= min",
+      "scope": {
+        "applies": [
+          "humanoid",
+          "ogre"
+        ],
+        "not_for": "figures that carry a two-handed prop in the walk"
+      },
+      "reason": "The arms must swing in the walk; a stub arm barely moves. The stock Knight reads 0.46."
+    }
+  ]
+}

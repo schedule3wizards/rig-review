@@ -1,0 +1,711 @@
+{
+ "file": "knight/Knight.glb",
+ "name": "kaykit_knight",
+ "profile": "humanoid",
+ "schema": 1,
+ "summary": {
+  "pass": 30,
+  "fail": 5,
+  "skip": 0,
+  "verdict": "FAIL"
+ },
+ "failed": [
+  "topology.clavicles",
+  "topology.neck_bone",
+  "topology.head_span",
+  "placement.chest_rib_base",
+  "arm.upper_fore_ratio"
+ ],
+ "landmarks": {
+  "H": 2.3145,
+  "ymin": -0.0,
+  "ymax": 2.3145,
+  "neck_y": 1.2082,
+  "head_width": 0.8749,
+  "crotch_y": 0.361,
+  "x_root": 0.388,
+  "x_tip_l": 0.9713,
+  "x_tip_r": 0.9713,
+  "x_root_l": 0.388,
+  "x_root_r": 0.388,
+  "left_right_disagreement": {
+   "x_root": 0.0,
+   "x_tip": 0.0,
+   "tube_y_over_H": 0.0
+  },
+  "landmarks_reliable": true
+ },
+ "rules": [
+  {
+   "id": "sym.joint_pairs",
+   "group": "symmetry",
+   "threshold": "value <= max  [max=0.04]",
+   "status": "PASS",
+   "value": 0.0,
+   "measured": {
+    "upperarm": 0.0,
+    "lowerarm": 0.0,
+    "wrist": 0.0,
+    "hand": 0.0,
+    "handslot": 0.0,
+    "upperleg": 0.0,
+    "lowerleg": 0.0,
+    "foot": 0.0,
+    "toes": 0.0,
+    "midline_x": 0.0
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "shoulder.level",
+   "group": "shoulder line",
+   "threshold": "value <= max  [max=0.015]",
+   "status": "PASS",
+   "value": 0.0,
+   "measured": {
+    "yl": 1.1068,
+    "yr": 1.1068
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "shoulder.neck_gap",
+   "group": "shoulder line",
+   "threshold": "min <= value <= max  [min=-0.03, max=0.07]",
+   "status": "PASS",
+   "value": 0.05818,
+   "measured": {
+    "neck_base_joint": "head",
+    "neck_base_y": 1.2414,
+    "shoulder_y": 1.1068,
+    "gap_m": 0.1347
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "neck.at_mesh_neck",
+   "group": "neck",
+   "threshold": "min <= value <= max  [min=-0.1, max=0.05]",
+   "status": "PASS",
+   "value": 0.01437,
+   "measured": {
+    "neck_y_mesh": 1.2082,
+    "neck_base_joint": "head",
+    "neck_base_y": 1.2414
+   },
+   "joints": [],
+   "note": "the column reaches 1.6 x the head width (0.87 m) here"
+  },
+  {
+   "id": "neck.skull_clear",
+   "group": "neck",
+   "threshold": "value >= min  [min=0.75]",
+   "status": "PASS",
+   "value": 0.96993,
+   "measured": {
+    "head_height_m": 1.1063,
+    "mesh_above_joint_m": 1.0731
+   },
+   "joints": [],
+   "note": "the column reaches 1.6 x the head width (0.87 m) here"
+  },
+  {
+   "id": "spine.order",
+   "group": "spine",
+   "threshold": "value >= min  [min=0.02]",
+   "status": "PASS",
+   "value": 0.08294,
+   "measured": {
+    "gaps": [
+     0.0829,
+     0.162,
+     0.1161
+    ]
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "spine.hips_at_crotch",
+   "group": "spine",
+   "threshold": "min <= value <= max  [min=-0.08, max=0.1]",
+   "status": "PASS",
+   "value": 0.01928,
+   "measured": {
+    "crotch_y": 0.361,
+    "hips_y": 0.4057
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "arm.pivot_in_shoulder",
+   "group": "arm chain",
+   "threshold": "min <= ratio <= max on both sides  [min=0.3, max=0.9]",
+   "status": "PASS",
+   "value": 0.54642,
+   "measured": {
+    "l": {
+     "ratio": 0.546,
+     "x_ua": 0.212,
+     "x_root": 0.388
+    },
+    "r": {
+     "ratio": 0.546,
+     "x_ua": 0.212,
+     "x_root": 0.388
+    }
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "arm.pivot_height",
+   "group": "arm chain",
+   "threshold": "min <= value <= max  [min=-0.05, max=0.1]",
+   "status": "PASS",
+   "value": -0.00993,
+   "measured": {
+    "l": {
+     "dy_over_H": -0.0099,
+     "tube_centre_y": 1.1297
+    },
+    "r": {
+     "dy_over_H": -0.0099,
+     "tube_centre_y": 1.1297
+    }
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "arm.elbow_mid",
+   "group": "arm chain",
+   "threshold": "frac_min <= frac <= frac_max and offset <= off_max, both sides  [frac_min=0.4, frac_max=0.6, off_max=0.05]",
+   "status": "PASS",
+   "value": 0.01813,
+   "measured": {
+    "l": {
+     "frac": 0.482,
+     "off_over_H": 0.006
+    },
+    "r": {
+     "frac": 0.482,
+     "off_over_H": 0.006
+    }
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "arm.chain_coverage",
+   "group": "arm chain",
+   "threshold": "value >= min  [min=0.6]",
+   "status": "PASS",
+   "value": 0.69099,
+   "measured": {
+    "l": {
+     "coverage": 0.691,
+     "x_tip": 0.9713
+    },
+    "r": {
+     "coverage": 0.691,
+     "x_tip": 0.9713
+    }
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "arm.hand_at_mesh_hand",
+   "group": "arm chain",
+   "threshold": "min <= value <= max, both sides  [min=0.02, max=0.12]",
+   "status": "PASS",
+   "value": 0.0796,
+   "measured": {
+    "l": {
+     "tip_gap_over_H": 0.0796
+    },
+    "r": {
+     "tip_gap_over_H": 0.0796
+    }
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "arm.on_axis",
+   "group": "arm chain",
+   "threshold": "value <= max  [max=0.07]",
+   "status": "PASS",
+   "value": 0.00726,
+   "measured": {
+    "lowerarm.l": 0.0058,
+    "wrist.l": 0.0073,
+    "hand.l": 0.0017,
+    "lowerarm.r": 0.0059,
+    "wrist.r": 0.0072,
+    "hand.r": 0.0018
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "leg.knee_mid",
+   "group": "leg chain",
+   "threshold": "frac_min <= frac <= frac_max and offset <= off_max, both sides  [frac_min=0.35, frac_max=0.65, off_max=0.05]",
+   "status": "PASS",
+   "value": 0.10423,
+   "measured": {
+    "l": {
+     "frac": 0.604,
+     "off_over_H": 0.0083
+    },
+    "r": {
+     "frac": 0.604,
+     "off_over_H": 0.0083
+    }
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "leg.ankle_height",
+   "group": "leg chain",
+   "threshold": "min <= value <= max  [min=0.03, max=0.11]",
+   "status": "PASS",
+   "value": 0.06276,
+   "measured": {
+    "l": 0.0628,
+    "r": 0.0628
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "leg.feet_on_floor",
+   "group": "leg chain",
+   "threshold": "|ymin| <= floor_max and toes_min <= toes - ymin <= toes_max  [floor_max=0.02, toes_min=-0.01, toes_max=0.04]",
+   "status": "PASS",
+   "value": 0.01124,
+   "measured": {
+    "mesh_ymin_over_H": -0.0,
+    "toes_l": 0.0112,
+    "toes_r": 0.0112
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "joints.inside_mesh",
+   "group": "placement",
+   "threshold": "value <= max  [max=0.04]",
+   "status": "PASS",
+   "value": 0.0,
+   "measured": {},
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "topology.spine_segments",
+   "group": "topology",
+   "threshold": "value >= min  [min=3]",
+   "status": "PASS",
+   "value": 3.0,
+   "measured": {
+    "chain": [
+     "hips",
+     "spine",
+     "chest",
+     "head"
+    ],
+    "segments_hip_to_neck_base": 3
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "topology.clavicles",
+   "group": "topology",
+   "threshold": "both sides present, parent = top spine joint, origin at the neck base, angle <= angle_max  [angle_max=25.0, origin_max=0.05]",
+   "status": "FAIL",
+   "value": null,
+   "measured": {
+    "parent_of_upperarm": {
+     "l": "chest",
+     "r": "chest"
+    }
+   },
+   "joints": [
+    "upperarm.l",
+    "upperarm.r"
+   ],
+   "note": "no clavicle bone: the upper arm hangs from chest"
+  },
+  {
+   "id": "topology.neck_bone",
+   "group": "topology",
+   "threshold": "neck present, parent = top spine joint, min <= length <= max  [min=0.02, max=0.12]",
+   "status": "FAIL",
+   "value": null,
+   "measured": {
+    "head_parent": "chest"
+   },
+   "joints": [
+    "head"
+   ],
+   "note": "no neck bone: the head hangs from chest"
+  },
+  {
+   "id": "topology.head_span",
+   "group": "topology",
+   "threshold": "tail present, |tail y - crown y| <= max and head joint within the lowest head_base_max of the head  [max=0.06, head_base_max=0.35]",
+   "status": "FAIL",
+   "value": null,
+   "measured": {
+    "head_joint_in_head_height": 0.03
+   },
+   "joints": [
+    "head"
+   ],
+   "note": "the head joint has no child joint: the bone's tail (the crown) is not stored, so it cannot span the skull"
+  },
+  {
+   "id": "placement.chest_rib_base",
+   "group": "placement",
+   "threshold": "min <= value <= max  [min=0.4, max=0.68]",
+   "status": "FAIL",
+   "value": 0.27382,
+   "measured": {
+    "fractions_hips_to_shoulder_line": {
+     "spine": 0.274,
+     "chest": 0.809
+    },
+    "nearest_to_rib_base": "spine"
+   },
+   "joints": [
+    "spine"
+   ],
+   "note": ""
+  },
+  {
+   "id": "placement.hip_sockets",
+   "group": "placement",
+   "threshold": "lat_min <= lateral <= lat_max and h_min <= height <= h_max, both sides  [lat_min=0.05, lat_max=0.15, h_min=-0.02, h_max=0.1]",
+   "status": "PASS",
+   "value": 0.0,
+   "measured": {
+    "l": {
+     "lateral_over_H": 0.0739,
+     "above_crotch_over_H": 0.0684
+    },
+    "r": {
+     "lateral_over_H": 0.0739,
+     "above_crotch_over_H": 0.0684
+    }
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "placement.knee_ankle_on_mesh",
+   "group": "placement",
+   "threshold": "value <= max  [max=0.05]",
+   "status": "PASS",
+   "value": 0.03991,
+   "measured": {
+    "lowerleg.l": 0.0049,
+    "foot.l": 0.0395,
+    "lowerleg.r": 0.0044,
+    "foot.r": 0.0399
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "arm.pivot_glenohumeral",
+   "group": "arm chain",
+   "threshold": "value <= max  [max=0.05, fit_agree_max=0.04]",
+   "status": "PASS",
+   "value": 0.01583,
+   "measured": {
+    "left_right_fit_disagreement_over_H": 0.0003,
+    "l": {
+     "distance_over_H": 0.0157,
+     "cap_centre": [
+      0.247,
+      1.116,
+      -0.0
+     ],
+     "cap_radius": 0.161
+    },
+    "r": {
+     "distance_over_H": 0.0158,
+     "cap_centre": [
+      -0.247,
+      1.116,
+      -0.001
+     ],
+     "cap_radius": 0.162
+    }
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "arm.upper_fore_ratio",
+   "group": "arm chain",
+   "threshold": "min <= ratio <= max and elbow offset <= elbow_max  [min=1.05, max=1.4, elbow_max=0.05]",
+   "status": "FAIL",
+   "value": 0.93022,
+   "measured": {
+    "l": {
+     "upper_over_fore": 0.93,
+     "elbow_off_mesh_elbow_over_H": 0.0197,
+     "mesh_elbow_x": 0.499
+    },
+    "r": {
+     "upper_over_fore": 0.93,
+     "elbow_off_mesh_elbow_over_H": 0.0197,
+     "mesh_elbow_x": 0.499
+    }
+   },
+   "joints": [
+    "lowerarm.l",
+    "lowerarm.r"
+   ],
+   "note": ""
+  },
+  {
+   "id": "arm.upper_length_vs_mesh",
+   "group": "arm chain",
+   "threshold": "min <= ratio <= max  [min=0.85, max=1.15]",
+   "status": "PASS",
+   "value": 0.96097,
+   "measured": {
+    "l": {
+     "rig_upper_arm": 0.242,
+     "mesh_humerus_cap_to_elbow": 0.252,
+     "ratio": 0.961
+    },
+    "r": {
+     "rig_upper_arm": 0.242,
+     "mesh_humerus_cap_to_elbow": 0.252,
+     "ratio": 0.961
+    }
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "motion.idle_arm_abduction",
+   "group": "motion",
+   "threshold": "idle clearance <= idle_max and walk clearance >= walk_min  [idle_max=0.15, walk_min=-0.04]",
+   "status": "PASS",
+   "value": 0.09461,
+   "measured": {
+    "idle_elbow_clearance_over_H": [
+     0.093,
+     0.038,
+     0.095,
+     0.039
+    ],
+    "walk_min_clearance_over_H": -0.001,
+    "walk_mean_clearance_over_H": 0.051,
+    "upper_arm_angle_off_torso_deg_in_the_clip": 56.5
+   },
+   "joints": [],
+   "note": "the upper-arm angle is set by the clip's rotations and the T-pose bind, so it is the same for every rig bound from this armature"
+  },
+  {
+   "id": "motion.deltoid_volume",
+   "group": "motion",
+   "threshold": "all clips: min <= ratio <= max  [min=0.65, max=1.5]",
+   "status": "PASS",
+   "value": 1.12771,
+   "measured": {
+    "chop": {
+     "min": 1.055,
+     "max": 1.128
+    },
+    "slice": {
+     "min": 1.047,
+     "max": 1.125
+    },
+    "idle": {
+     "min": 1.057,
+     "max": 1.063
+    }
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "placement.hips_height",
+   "group": "placement",
+   "threshold": "thigh_min <= thigh above crotch <= thigh_max and hips_min <= hips above thigh <= hips_max  [thigh_min=0.02, thigh_max=0.1, hips_min=-0.06, hips_max=0.06]",
+   "status": "PASS",
+   "value": 0.0,
+   "measured": {
+    "l": {
+     "thigh_joint_above_crotch_over_H": 0.0684,
+     "hips_above_thigh_joint_over_H": -0.0491
+    },
+    "r": {
+     "thigh_joint_above_crotch_over_H": 0.0684,
+     "hips_above_thigh_joint_over_H": -0.0491
+    }
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "weights.nearest_bone",
+   "group": "weights",
+   "threshold": "worst bone share <= share_max  [near=0.06, margin=0.02, share_max=0.15]",
+   "status": "PASS",
+   "value": 0.11765,
+   "measured": {
+    "upperarm.l": {
+     "share": 0.1176,
+     "vertices": 68
+    },
+    "lowerarm.l": {
+     "share": 0.0,
+     "vertices": 142
+    },
+    "wrist.l": {
+     "share": 0.0,
+     "vertices": 67
+    },
+    "hand.l": {
+     "share": 0.0,
+     "vertices": 56
+    },
+    "upperarm.r": {
+     "share": 0.1176,
+     "vertices": 68
+    },
+    "lowerarm.r": {
+     "share": 0.0,
+     "vertices": 142
+    },
+    "wrist.r": {
+     "share": 0.0,
+     "vertices": 67
+    },
+    "hand.r": {
+     "share": 0.0,
+     "vertices": 56
+    },
+    "upperleg.l": {
+     "share": 0.0253,
+     "vertices": 79
+    },
+    "lowerleg.l": {
+     "share": 0.0,
+     "vertices": 100
+    },
+    "foot.l": {
+     "share": 0.0,
+     "vertices": 58
+    },
+    "toes.l": {
+     "share": 0.0,
+     "vertices": 69
+    },
+    "upperleg.r": {
+     "share": 0.0253,
+     "vertices": 79
+    },
+    "lowerleg.r": {
+     "share": 0.0,
+     "vertices": 100
+    },
+    "foot.r": {
+     "share": 0.0,
+     "vertices": 58
+    },
+    "toes.r": {
+     "share": 0.0,
+     "vertices": 69
+    }
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "weights.no_lr_mix",
+   "group": "weights",
+   "threshold": "share <= share_max  [share_max=0.002, weight_min=0.2]",
+   "status": "PASS",
+   "value": 0.0,
+   "measured": {
+    "mixed_vertices": 0,
+    "of": 3716
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "weights.no_arm_leg_mix",
+   "group": "weights",
+   "threshold": "share <= share_max  [share_max=0.002, weight_min=0.2]",
+   "status": "PASS",
+   "value": 0.0,
+   "measured": {
+    "mixed_vertices": 0,
+    "of": 3716
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "motion.edge_stretch",
+   "group": "motion",
+   "threshold": "share <= share_max  [max_ratio=2.0, share_max=0.005]",
+   "status": "PASS",
+   "value": 0.0013,
+   "measured": {
+    "idle": {
+     "share": 0.0,
+     "max_ratio": 1.76
+    },
+    "walk A": {
+     "share": 0.0,
+     "max_ratio": 1.79
+    },
+    "walk B": {
+     "share": 0.0,
+     "max_ratio": 1.79
+    },
+    "attack peak": {
+     "share": 0.0,
+     "max_ratio": 1.58
+    },
+    "death end": {
+     "share": 0.0013,
+     "max_ratio": 2.23
+    }
+   },
+   "joints": [],
+   "note": ""
+  },
+  {
+   "id": "motion.arm_swing_walk",
+   "group": "motion",
+   "threshold": "value >= min  [min=0.2]",
+   "status": "PASS",
+   "value": 0.46432,
+   "measured": {
+    "l": 0.464,
+    "r": 0.464
+   },
+   "joints": [],
+   "note": ""
+  }
+ ]
+}

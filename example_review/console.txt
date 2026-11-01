@@ -1,0 +1,37 @@
+PASS sym.joint_pairs            0.0        
+PASS shoulder.level             0.0        
+PASS shoulder.neck_gap          0.05818    
+PASS neck.at_mesh_neck          0.01437    
+PASS neck.skull_clear           0.96993    
+PASS spine.order                0.08294    
+PASS spine.hips_at_crotch       0.01928    
+PASS arm.pivot_in_shoulder      0.54642    
+PASS arm.pivot_height           -0.00993   
+PASS arm.elbow_mid              0.01813    
+PASS arm.chain_coverage         0.69099    
+PASS arm.hand_at_mesh_hand      0.0796     
+PASS arm.on_axis                0.00726    
+PASS leg.knee_mid               0.10423    
+PASS leg.ankle_height           0.06276    
+PASS leg.feet_on_floor          0.01124    
+PASS joints.inside_mesh         0.0        
+PASS topology.spine_segments    3.0        
+FAIL topology.clavicles                    
+FAIL topology.neck_bone                    
+FAIL topology.head_span                    
+FAIL placement.chest_rib_base   0.27382    
+PASS placement.hip_sockets      0.0        
+PASS placement.knee_ankle_on_mesh 0.03991    
+PASS arm.pivot_glenohumeral     0.01583    
+FAIL arm.upper_fore_ratio       0.93022    
+PASS arm.upper_length_vs_mesh   0.96097    
+PASS motion.idle_arm_abduction  0.09461    
+PASS motion.deltoid_volume      1.12771    
+PASS placement.hips_height      0.0        
+PASS weights.nearest_bone       0.11765    
+PASS weights.no_lr_mix          0.0        
+PASS weights.no_arm_leg_mix     0.0        
+PASS motion.edge_stretch        0.0013     
+PASS motion.arm_swing_walk      0.46432    
+kaykit_knight profile=humanoid: 5 FAIL, 30 PASS, 0 SKIP -> FAIL
+failed: topology.clavicles, topology.neck_bone, topology.head_span, placement.chest_rib_base, arm.upper_fore_ratio
