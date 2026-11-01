@@ -24,7 +24,9 @@ Python 3 with numpy and Pillow. scipy is optional; without it `motion.deltoid_vo
 python rig_review/rig_review.py knight/Knight.glb --profile humanoid --out-dir out --name kaykit_knight
 ```
 
-Exit code 0 means every rule passed, 1 means at least one FAIL, 2 means the file could not be read. It writes
+Exit code 0 means every rule passed, 1 means at least one FAIL, 2 means the file could not be read, 3 means no rule
+failed but at least one could not be measured (SKIP; the verdict reads INCOMPLETE), and 4 means the review raised on a
+file that loaded, which is a defect in the script rather than in the input. It writes
 `<name>_rig_review.json` (every rule with its value, threshold and status) and `<name>_rig_review.png` (front and side
 bind-pose overlays with neck-base, shoulder and hip guide lines, the rule table, and a six-frame pose strip skinned by
 linear blend from the glb's own animations).

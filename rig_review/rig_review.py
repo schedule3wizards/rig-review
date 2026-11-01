@@ -5,7 +5,8 @@
 Reviews a KayKit-armature rig (the 41-bone Knight skeleton fitted to a mesh by bind_kaykit.py) against the rules in
 rig_schema.json and writes <name>_rig_review.json and <name>_rig_review.png (the review sheet).
 
-Exit codes: 0 every rule passes, 1 at least one rule FAILs, 2 the input could not be read.
+Exit codes: 0 every rule passes, 1 at least one rule FAILs, 2 the input could not be read, 3 no rule FAILs but at least one
+could not be measured (SKIP), 4 the review raised on a file that loaded (a defect in this script, not in the input).
 
 numpy and Pillow only. The glb is parsed here: node hierarchy, the first skin, inverse bind matrices, POSITION, JOINTS_0,
 WEIGHTS_0, indices and animations; the motion frames are linear blend skinning of the bind-pose vertices.
@@ -21,6 +22,7 @@ import os
 import re
 import struct
 import sys
+import traceback
 
 import numpy as np
 
@@ -1033,7 +1035,7 @@ CHECKS = {
 }
 
 
-# ------------------------------------------------------------------------------------ topology and placement (Matt, 16:17)
+# ------------------------------------------------------------------------------------ topology and placement
 
 RE_CLAV = re.compile(r"clav|collar|shoulder", re.I)
 RE_NECK = re.compile(r"^neck", re.I)
@@ -1192,7 +1194,7 @@ CHECKS.update({"topology.spine_segments": r_spine_segments, "topology.clavicles"
                "placement.knee_ankle_on_mesh": r_knee_ankle})
 
 
-# ------------------------------------------------- arm pivot, upper/fore arm, idle clearance, deltoid volume, hip height (Matt, 16:43)
+# ------------------------------------------------- arm pivot, upper/fore arm, idle clearance, deltoid volume, hip height
 
 def surface_points_n(V, F, n=300000, seed=0):
     """Area-weighted surface points with the face normal of each."""
@@ -1427,6 +1429,8 @@ def r_deltoid_volume(c, p):
             rs.append(ConvexHull(rig.skin(jm)[m]).volume / v0)
         det[lab] = {"min": round(float(min(rs)), 3), "max": round(float(max(rs)), 3)}
         worst = max(worst, max(rs), 1.0 / max(min(rs), 1e-6))
+    if not det:
+        raise Unmeasured("no chop, slice or idle clip in the glb")
     ok = all(p["min"] <= v["min"] and v["max"] <= p["max"] for v in det.values())
     return _res(worst, ok, det, [] if ok else ["upperarm.l", "upperarm.r"])
 
@@ -1496,11 +1500,11 @@ def analyse(rig, profile="humanoid", schema=None, only=None):
 
 # ----------------------------------------------------------------------------------------------------- the review sheet
 
-CHAINS = [["hips", "spine", "chest", "head"],
-          ["chest", "upperarm.l", "lowerarm.l", "wrist.l", "hand.l", "handslot.l"],
-          ["chest", "upperarm.r", "lowerarm.r", "wrist.r", "hand.r", "handslot.r"],
-          ["hips", "upperleg.l", "lowerleg.l", "foot.l", "toes.l"],
-          ["hips", "upperleg.r", "lowerleg.r", "foot.r", "toes.r"]]
+def verdict_of(n):
+    """FAIL when any rule fails; INCOMPLETE when none fails and any was skipped; PASS only when every rule passed."""
+    return "FAIL" if n["FAIL"] else ("INCOMPLETE" if n["SKIP"] else "PASS")
+
+
 def chains_for(R):
     """Bone chains to draw: the spine to the head (through any neck and head tail), each arm from the clavicle or the top spine
     joint, each leg from the hips."""
@@ -1513,7 +1517,7 @@ def chains_for(R):
     return out
 
 
-COL = {"PASS": (30, 130, 50), "FAIL": (205, 30, 30), "SKIP": (130, 130, 130)}
+COL = {"PASS": (30, 130, 50), "FAIL": (205, 30, 30), "SKIP": (130, 130, 130), "INCOMPLETE": (200, 100, 0)}
 
 
 def _font(sz):
@@ -1580,8 +1584,6 @@ def draw_overlay(d, box, view, rig, c, results, ft):
             continue
         xx, yy = px(h[j])
         d.ellipse((xx - 9, yy - 9, xx + 9, yy + 9), outline=(255, 0, 0), width=3)
-        if view == "front" and h[j][0] < 0 and j.endswith(".r") is False and False:
-            continue
         d.text((xx + 11, yy - 6 + (k % 3) * 11), j, fill=(200, 0, 0), font=ft)
         k += 1
     d.text((x0 + 6, y0 + 4), view + " (bind pose)", fill=(0, 0, 0), font=ft)
@@ -1654,7 +1656,7 @@ def render_sheet(rig, c, results, name, profile, out_png):
     img = Image.new("RGB", (W, topH + TH + 34), (255, 255, 255))
     d = ImageDraw.Draw(img)
     n = {k: sum(1 for r in results if r["status"] == k) for k in ("PASS", "FAIL", "SKIP")}
-    verdict = "FAIL" if n["FAIL"] else "PASS"
+    verdict = verdict_of(n)
     d.text((10, 8), "%s   profile=%s   %d FAIL  %d PASS  %d SKIP   %s" % (name, profile, n["FAIL"], n["PASS"], n["SKIP"], verdict),
            fill=COL[verdict], font=fb)
     try:
@@ -1716,7 +1718,7 @@ def review(path, profile="humanoid", out_dir=None, name=None, schema=None, sheet
     name = name or default_name(path)
     n = {k: sum(1 for r in results if r["status"] == k) for k in ("PASS", "FAIL", "SKIP")}
     doc = {"file": path, "name": name, "profile": profile, "schema": schema["schema"],
-           "summary": {"pass": n["PASS"], "fail": n["FAIL"], "skip": n["SKIP"], "verdict": "FAIL" if n["FAIL"] else "PASS"},
+           "summary": {"pass": n["PASS"], "fail": n["FAIL"], "skip": n["SKIP"], "verdict": verdict_of(n)},
            "failed": [r["id"] for r in results if r["status"] == "FAIL"], "landmarks": landmarks_summary(c), "rules": results}
     if out_dir:
         os.makedirs(out_dir, exist_ok=True)
@@ -1744,20 +1746,33 @@ def main(argv=None):
     ap.add_argument("--no-sheet", action="store_true")
     a = ap.parse_args(argv)
     try:
-        doc = review(a.glb, a.profile, a.out_dir, a.name, load_schema(a.schema), sheet=not a.no_sheet)
+        schema = load_schema(a.schema)
+        rig = Rig(a.glb)
     except BadInput as e:
         print("rig_review: broken input: %s" % e, file=sys.stderr)
         return 2
     except Exception as e:  # noqa: BLE001
         print("rig_review: broken input: %s: %s" % (type(e).__name__, e), file=sys.stderr)
         return 2
+    try:
+        doc = review(a.glb, a.profile, a.out_dir, a.name, schema, sheet=not a.no_sheet, rig=rig)
+    except BadInput as e:
+        print("rig_review: broken input: %s" % e, file=sys.stderr)
+        return 2
+    except Exception:  # noqa: BLE001
+        traceback.print_exc()
+        print("rig_review: internal error: the review raised on a file that loaded; this is a defect in rig_review.py",
+              file=sys.stderr)
+        return 4
     s = doc["summary"]
     for r in doc["rules"]:
         print("%-4s %-26s %-10s %s" % (r["status"], r["id"], "" if r["value"] is None else r["value"], r["note"][:70] if r["status"] == "SKIP" else ""))
     print("%s profile=%s: %d FAIL, %d PASS, %d SKIP -> %s" % (doc["name"], a.profile, s["fail"], s["pass"], s["skip"], s["verdict"]))
     if s["fail"]:
         print("failed: " + ", ".join(doc["failed"]))
-    return 1 if s["fail"] else 0
+    elif s["skip"]:
+        print("skipped: " + ", ".join(r["id"] for r in doc["rules"] if r["status"] == "SKIP"))
+    return 1 if s["fail"] else (3 if s["skip"] else 0)
 
 
 if __name__ == "__main__":
